@@ -89,8 +89,7 @@ def bbs():
         c.execute("select id,comment from bbs where userid = ? order by id", (user_id,))
         comment_list = []
         for row in c.fetchall():
-            comment_list.append({"id": row[0], "comment": row[1]})
-
+            comment_list.append({"id": row[0], "comment": row[1], "display": row[2]})
         c.close()
         return render_template('bbs.html' , user_info = user_info , comment_list = comment_list)
     else:
@@ -105,7 +104,7 @@ def add():
     conn = sqlite3.connect('service.db')
     c = conn.cursor()
     # DBにデータを追加する
-    c.execute("insert into bbs values(null,?,?)", (user_id, comment))
+    c.execute("insert into bbs values(null,?,?,null)", (user_id, comment))
     conn.commit()
     conn.close()
     return redirect('/bbs')
@@ -116,7 +115,7 @@ def edit(id):
     if 'user_id' in session :
         conn = sqlite3.connect('service.db')
         c = conn.cursor()
-        c.execute("select comment from bbs where id = ?", (id,) )
+        c.execute("select comment from bbs where id = ?", (id,))
         comment = c.fetchone()
         conn.close()
 
@@ -169,6 +168,16 @@ def del_task():
     c.close()
     return redirect("/bbs")
 
+@app.route('/display' ,methods=["POST"])
+def display_task():
+    id = request.form.get("comment_id")
+    id = int(id)
+    conn = sqlite3.connect("service.db")
+    c = conn.cursor()
+    c.execute("update bbs set display = 1 where id = ?", (id,))
+    conn.commit()
+    c.close()
+    return redirect("/bbs")
 
 @app.errorhandler(403)
 def mistake403(code):
